@@ -1,0 +1,12 @@
+{
+    "name": "bfg/dev",
+    "type": "bfg-script",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "bfg",
+            "email": "bfg.script@gmail.com"
+        }
+    ],
+    "require": {}
+}
