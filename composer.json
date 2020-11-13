@@ -8,5 +8,29 @@
             "email": "bfg.script@gmail.com"
         }
     ],
-    "require": {}
+    "require": {
+        "php": ">=7.4.0",
+        "barryvdh/laravel-ide-helper": "^2.6",
+        "ext-exif": "*"
+    },
+    "require-dev": {
+    },
+    "autoload": {
+        "psr-4": {
+            "Bfg\\Dev\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Bfg\\Dev\\ServiceProvider"
+            ],
+            "aliases": {
+                "Dev": "Bfg\\Dev\\Facade"
+            }
+        }
+    }
 }
