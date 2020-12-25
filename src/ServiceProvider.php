@@ -2,6 +2,10 @@
 
 namespace Bfg\Dev;
 
+use Bfg\Dev\Commands\BfgPackageDiscoverCommand;
+use Bfg\Dev\Commands\DumpAutoload;
+use Bfg\Dev\Commands\SpeedTestCommand;
+use Illuminate\Foundation\Console\PackageDiscoverCommand;
 use Illuminate\Support\ServiceProvider as ServiceProviderIlluminate;
 
 /**
@@ -14,7 +18,9 @@ class ServiceProvider extends ServiceProviderIlluminate
      * @var array
      */
     protected $commands = [
-
+        DumpAutoload::class,
+        SpeedTestCommand::class,
+        BfgPackageDiscoverCommand::class
     ];
 
     /**
@@ -43,6 +49,10 @@ class ServiceProvider extends ServiceProviderIlluminate
      */
     public function register()
     {
+//        $this->app->bind(PackageDiscoverCommand::class, function () {
+//            dd(BfgPackageDiscoverCommand::class);
+//        });
+
         $this->registerRouteMiddleware();
 
         $this->commands($this->commands);
