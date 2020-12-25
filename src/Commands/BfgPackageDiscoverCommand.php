@@ -16,7 +16,7 @@ class BfgPackageDiscoverCommand extends PackageDiscoverCommand
      *
      * @var string
      */
-    protected $signature = 'bfg:package:discover';
+    protected $signature = 'package:discover';
 
     /**
      * Execute the console command.
