@@ -1,5 +1,6 @@
 {
     "name": "bfg/dev",
+    "description": "Low-level set of tools and helpers.",
     "type": "bfg-script",
     "license": "MIT",
     "authors": [
