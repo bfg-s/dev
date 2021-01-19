@@ -22,7 +22,8 @@
             "Bfg\\Dev\\": "src/"
         },
         "files": [
-            "src/helpers.php"
+            "src/helpers.php",
+            "src/macroses.php"
         ]
     },
     "extra": {

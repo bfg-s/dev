@@ -1,0 +1,25 @@
+<?php
+
+namespace DummyNamespace;
+
+use Bfg\Layout\View\Component;
+
+class DummyClass extends Component
+{
+    /**
+     * The component alias name.
+     *
+     * @var string
+     */
+    public $componentName = "DummyComponentName";
+
+    /**
+     * Create a new component instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        //
+    }
+}

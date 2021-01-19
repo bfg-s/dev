@@ -1,5 +1,25 @@
 <?php
 
+if (!function_exists("is_image")) {
+
+    /**
+     * Is Image
+     *
+     * @param $path
+     * @return bool
+     */
+    function is_image($path)
+    {
+        try {
+
+            return !!exif_imagetype($path);
+
+        } catch (Exception $exception) {}
+
+        return false;
+    }
+}
+
 if (! function_exists("is_embedded_call") ) {
 
     /**
@@ -9,6 +29,22 @@ if (! function_exists("is_embedded_call") ) {
     function is_embedded_call ($subject) {
 
         return is_string($subject) ? class_exists($subject) : is_callable($subject);
+    }
+}
+
+if (!function_exists('pipeline')) {
+
+    /**
+     * @param $send
+     * @param  array  $pipes
+     * @return mixed|$send
+     */
+    function pipeline ($send, array $pipes) {
+
+        return app(\Illuminate\Pipeline\Pipeline::class)
+            ->send($send)
+            ->through($pipes)
+            ->thenReturn();
     }
 }
 
@@ -101,5 +137,57 @@ if (! function_exists("array_merge_recursive_distinct") ) {
         }
 
         return $merged;
+    }
+}
+
+if (!function_exists("lang_in_text")) {
+
+    /**
+     * @param $string
+     * @return bool|mixed
+     */
+    function lang_in_text($string) {
+
+        if (is_string($string)) {
+
+            $string = preg_replace_callback('/\@([a-zA-Z0-9\_\-\.]+)/', function ($m) {
+                return __($m[1]);
+            }, $string);
+        }
+
+        return $string;
+    }
+}
+
+if (!function_exists('array_dots_uncollapse')) {
+
+    /**
+     * @param  array  $array
+     * @return array
+     */
+    function array_dots_uncollapse(array $array) {
+
+        $result = [];
+
+        foreach ($array as $key => $value) {
+
+            Arr::set($result, $key, $value);
+        }
+
+        return $result;
+    }
+}
+
+if (! function_exists("embedded_call") ) {
+
+    /**
+     * @param $subject
+     * @param  array  $arguments
+     * @param  null  $throw_event
+     * @return mixed
+     */
+    function embedded_call (callable $subject, array $arguments = [], $throw_event = null) {
+
+        return (new \Bfg\Dev\EmbeddedCall($subject, $arguments, $throw_event))->call();
     }
 }

@@ -2,14 +2,11 @@
 
 namespace Bfg\Dev;
 
+use Bfg\Dev\Commands\BfgDumpCommand;
 use Bfg\Dev\Commands\BfgPackageDiscoverCommand;
 use Bfg\Dev\Commands\DumpAutoload;
 use Bfg\Dev\Commands\MakeComponentCommand;
 use Bfg\Dev\Commands\SpeedTestCommand;
-use Illuminate\Console\Application as Artisan;
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Foundation\Console\ComponentMakeCommand;
-use Illuminate\Foundation\Console\PackageDiscoverCommand;
 use Illuminate\Support\ServiceProvider as ServiceProviderIlluminate;
 
 /**
@@ -24,7 +21,7 @@ class ServiceProvider extends ServiceProviderIlluminate
     protected $commands = [
         DumpAutoload::class,
         SpeedTestCommand::class,
-        //BfgPackageDiscoverCommand::class
+        BfgDumpCommand::class
     ];
 
     /**
@@ -58,15 +55,6 @@ class ServiceProvider extends ServiceProviderIlluminate
         $this->app->extend('command.package.discover', function () {
             return new BfgPackageDiscoverCommand;
         });
-
-//        Artisan::starting(function ($artisan) {
-//
-//            $artisan->resolve(MakeComponentCommand::class);
-//        });
-
-//        $this->app->singleton('command.component.make', function ($app) {
-//            return new MakeComponentCommand($app['files']);
-//        });
 
         $this->registerRouteMiddleware();
 

@@ -6,7 +6,6 @@ use Bfg\Dev\EmbeddedCall;
 use Bfg\Dev\Interfaces\DumpExecuteInterface;
 use Illuminate\Console\Command;
 
-
 /**
  * Class DumpAutoload
  *
