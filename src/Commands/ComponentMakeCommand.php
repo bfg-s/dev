@@ -2,15 +2,13 @@
 
 namespace Bfg\Dev\Commands;
 
-use Illuminate\Foundation\Console\ComponentMakeCommand;
-use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Str;
 
 /**
- * Class MakeComponentCommand
+ * Class ComponentMakeCommand
  * @package Bfg\Dev\Commands
  */
-class MakeComponentCommand extends ComponentMakeCommand
+class ComponentMakeCommand extends \Illuminate\Foundation\Console\ComponentMakeCommand
 {
     public function handle()
     {
@@ -91,7 +89,6 @@ HTML;
             $stub
         );
     }
-
     /**
      * Get the stub file for the generator.
      *
@@ -99,7 +96,20 @@ HTML;
      */
     protected function getStub()
     {
-        return __DIR__.'/stubs/bfg-component.stub';
+        return $this->resolveStubPath('/stubs/bfg-component.stub');
+    }
+
+    /**
+     * Resolve the fully-qualified path to the stub.
+     *
+     * @param  string  $stub
+     * @return string
+     */
+    protected function resolveStubPath($stub)
+    {
+        return file_exists($customPath = $this->laravel->basePath(trim($stub, '/')))
+            ? $customPath
+            : __DIR__.$stub;
     }
 
     /**
