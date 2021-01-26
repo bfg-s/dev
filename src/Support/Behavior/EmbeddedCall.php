@@ -1,13 +1,13 @@
 <?php
 
-namespace Bfg\Dev;
+namespace Bfg\Dev\Support\Behavior;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Class EmbeddedCall
- * @package Bfg\Dev
+ * @package Bfg\Dev\Support\Behavior
  */
 class EmbeddedCall
 {
@@ -260,7 +260,7 @@ class EmbeddedCall
                 $r_data = $this->route_params[$params['name']];
             }
 
-            $class = isset($r_data) && is_object($r_data) ? $r_data : new $params['class'];
+            $class = isset($r_data) && is_object($r_data) ? $r_data : app($params['class']);
 
             if ($class instanceof EmbeddedCallExtend) {
 
@@ -277,13 +277,6 @@ class EmbeddedCall
                 } else if ($find_class) {
                     $class = $find_class;
                 }
-            }
-
-            else if ($class instanceof FormRequest) {
-
-                app()->bind($params['class']);
-
-                $class = app($params['class']);
             }
 
             return $class;

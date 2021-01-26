@@ -1,8 +1,8 @@
 <?php
 
-namespace Bfg\Dev;
+namespace Bfg\Dev\Support\Eloquent;
 
-use Bfg\Dev\Traits\Eventable;
+use Bfg\Dev\Support\Http\FormRequest;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -12,15 +12,11 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\UploadedFile;
 
 /**
- * Class ModelSaver
+ * Class ModelInjector
  * @package Lar\Developer\Core
  */
-class ModelSaver
+class ModelInjector
 {
-    use Eventable;
-
-    const DELETE_FIELD = "__DELETE__";
-
     /**
      * Save model
      *
@@ -81,56 +77,32 @@ class ModelSaver
     protected static $on_deleted = [];
 
     /**
-     * ModelSaver constructor.
+     * ModelInjector constructor.
      *
-     * @param Model|string $model
-     * @param array $data
+     * @param  Model|Relation|Builder|string  $model
+     * @param  array|string  $data  You can send a FormRequest
      */
-    public function __construct($model, array $data)
+    public function __construct(Model|Relation|Builder|string $model, array|string $data = [])
     {
         if (is_string($model)) {
 
-            $model = new $model;
+            $model = app($model);
+        }
+
+        if (is_string($data)) {
+
+            $data = app($data);
+
+            if ($data instanceof FormRequest) {
+
+                $data = $data->transform();
+
+            } else { $data = []; }
         }
 
         $this->model = $model;
 
         $this->data = $data;
-    }
-
-    /**
-     * @param $model
-     * @param  array  $data
-     * @return bool|void
-     */
-    public static function do($model, array $data)
-    {
-        return (new static($model, $data))->save();
-    }
-
-    /**
-     * @param $model
-     * @param  array|Arrayable  $data
-     * @return \Illuminate\Support\Collection
-     */
-    public static function doMany($model, $data)
-    {
-        $results = collect();
-
-        foreach ($data as $datum) {
-
-            if ($datum instanceof Arrayable) {
-
-                $datum = $datum->toArray();
-            }
-
-            if (is_array($datum) && count($datum)) {
-
-                $results->push((new static($model, $datum))->save());
-            }
-        }
-
-        return $results;
     }
 
     /**
@@ -177,13 +149,6 @@ class ModelSaver
      */
     protected function update_model($data, $add)
     {
-        if ($this->has_delete) {
-            $this->call_on('on_delete', $this->data, $this->model);
-            $return = $this->model->delete();
-            $this->call_on('on_deleted', $this->data, $this->model);
-            return $return;
-        }
-
         $r1 = $this->call_on('on_save', $this->data, $this->model);
         $r2 = $this->call_on('on_update', $this->data, $this->model);
 
@@ -342,15 +307,6 @@ class ModelSaver
                 $data[$key] = $datum;
             }
         }
-        $key = $this->getModelKeyName();
-        if (
-            isset($data[static::DELETE_FIELD]) &&
-            isset($data[$key]) &&
-            $data[static::DELETE_FIELD] == $data[$key]
-        ) {
-            $this->has_delete = true;
-            return [[], []];
-        }
         $nullable = $this->getNullableFields();
         $result = [[]];
         foreach ($this->getFields() as $field) {
@@ -396,15 +352,34 @@ class ModelSaver
     }
 
     /**
+     * @param  string  $name
+     * @param  mixed  ...$params
+     */
+    protected function call_on(string $name, ...$params)
+    {
+        $events = static::$$name;
+        $model = $this->getModel();
+        $class = $model ? get_class($model) : false;
+
+        $result = [];
+
+        if ($class && isset($events[$class])) {
+            foreach ($events[$class] as $item) {
+                $r = call_user_func_array($item, $params);
+                if (is_array($r) && count($r)) $result = array_merge_recursive($result, $r);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * @return string|null
      */
     public function getModelKeyName()
     {
-        $key = null;
         $model = $this->getModel();
-        if ($model) $key = $model->getKeyName();
-
-        return $key;
+        return $model ? $model->getKeyName() : null;
     }
 
     /**
@@ -412,11 +387,8 @@ class ModelSaver
      */
     public function getModelTable()
     {
-        $table = null;
         $model = $this->getModel();
-        if ($model) $table = $model->getTable();
-
-        return $table;
+        return $model ? $model->getTable() : null;
     }
 
     /**
@@ -440,6 +412,37 @@ class ModelSaver
         }
 
         return $model;
+    }
+
+
+    /**
+     * @param  Model|Relation|Builder|string  $model
+     * @param  array|string  $data
+     * @return bool|Builder|Model|Relation|\Illuminate\Support\Collection|mixed|string|void
+     */
+    public static function do(Model|Relation|Builder|string $model, array|string $data = [])
+    {
+        if (is_array($data) && !is_assoc($data)) {
+
+            $results = collect();
+
+            foreach ($data as $datum) {
+
+                if ($datum instanceof Arrayable) {
+
+                    $datum = $datum->toArray();
+                }
+
+                if (is_array($datum) && count($datum) || is_string($datum)) {
+
+                    $results->push((new static($model, $datum))->save());
+                }
+            }
+
+            return $results;
+        }
+
+        return (new static($model, $data))->save();
     }
 
     /**
@@ -538,27 +541,5 @@ class ModelSaver
 
             static::$$event = $events;
         }
-    }
-
-    /**
-     * @param  string  $name
-     * @param  mixed  ...$params
-     */
-    protected function call_on(string $name, ...$params)
-    {
-        $events = static::$$name;
-        $model = $this->getModel();
-        $class = $model ? get_class($model) : false;
-
-        $result = [];
-
-        if ($class && isset($events[$class])) {
-            foreach ($events[$class] as $item) {
-                $r = call_user_func_array($item, $params);
-                if (is_array($r) && count($r)) $result = array_merge_recursive($result, $r);
-            }
-        }
-
-        return $result;
     }
 }

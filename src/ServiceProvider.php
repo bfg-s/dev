@@ -7,7 +7,6 @@ use Bfg\Dev\Commands\BfgPackageDiscoverCommand;
 use Bfg\Dev\Commands\DumpAutoload;
 use Bfg\Dev\Commands\ComponentMakeCommand;
 use Bfg\Dev\Commands\RequestMakeCommand;
-use Bfg\Dev\Commands\SpeedTestCommand;
 use Illuminate\Support\ServiceProvider as ServiceProviderIlluminate;
 
 /**
@@ -21,7 +20,6 @@ class ServiceProvider extends ServiceProviderIlluminate
      */
     protected $commands = [
         DumpAutoload::class,
-        //SpeedTestCommand::class,
         BfgDumpCommand::class
     ];
 
@@ -51,15 +49,18 @@ class ServiceProvider extends ServiceProviderIlluminate
      */
     public function register()
     {
-        $this->app->extend('command.component.make', function () {
-            return new ComponentMakeCommand(app('files'));
-        });
-        $this->app->extend('command.package.discover', function () {
-            return new BfgPackageDiscoverCommand;
-        });
-        $this->app->extend('command.request.make', function () {
-            return new RequestMakeCommand(app('files'));
-        });
+        if ($this->app->runningInConsole()) {
+
+            $this->app->extend('command.package.discover', function () {
+                return new BfgPackageDiscoverCommand;
+            });
+            $this->app->extend('command.component.make', function () {
+                return new ComponentMakeCommand(app('files'));
+            });
+            $this->app->extend('command.request.make', function () {
+                return new RequestMakeCommand(app('files'));
+            });
+        }
 
         $this->registerRouteMiddleware();
 

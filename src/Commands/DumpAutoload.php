@@ -2,7 +2,7 @@
 
 namespace Bfg\Dev\Commands;
 
-use Bfg\Dev\EmbeddedCall;
+use Bfg\Dev\Support\Behavior\EmbeddedCall;
 use Bfg\Dev\Interfaces\DumpExecuteInterface;
 use Illuminate\Console\Command;
 

@@ -1,12 +1,12 @@
 <?php
 
-namespace Bfg\Dev;
+namespace Bfg\Dev\Support\FileSystem;
 
 /**
- * Class ConfigSaver
- * @package Bfg\Dev
+ * Class ConfigFactory
+ * @package Bfg\Dev\Support\FileSystem
  */
-class ConfigSaver
+class ConfigFactory
 {
     /**
      * File path
@@ -125,7 +125,7 @@ class ConfigSaver
      * @param $group
      * @param $key
      * @param null $value
-     * @return ConfigSaver
+     * @return ConfigFactory
      */
     public function add_to_group($group, $key, $value = null)
     {
@@ -214,7 +214,7 @@ class ConfigSaver
      * Open CFG file
      *
      * @param $file
-     * @return ConfigSaver
+     * @return ConfigFactory
      */
     static function open ($file) {
 

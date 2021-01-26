@@ -1,5 +1,9 @@
 <?php
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
+
 if (!function_exists("is_image")) {
 
     /**
@@ -188,6 +192,19 @@ if (! function_exists("embedded_call") ) {
      */
     function embedded_call (callable $subject, array $arguments = [], $throw_event = null) {
 
-        return (new \Bfg\Dev\EmbeddedCall($subject, $arguments, $throw_event))->call();
+        return (new \Bfg\Dev\Support\Behavior\EmbeddedCall($subject, $arguments, $throw_event))->call();
+    }
+}
+
+if (! function_exists("save_model") ) {
+
+    /**
+     * @param  Model|Relation|Builder|string  $model
+     * @param  array|string  $data
+     * @return bool|Builder|Model|Relation|\Illuminate\Support\Collection|mixed|string|void
+     */
+    function save_model (Model|Relation|Builder|string $model, array|string $data = []) {
+
+        return \Bfg\Dev\Support\Eloquent\ModelInjector::do($model, $data);
     }
 }

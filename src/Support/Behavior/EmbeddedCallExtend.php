@@ -1,6 +1,6 @@
 <?php
 
-namespace Bfg\Dev;
+namespace Bfg\Dev\Support\Behavior;
 
 /**
  * Class EmbeddedCallExtend

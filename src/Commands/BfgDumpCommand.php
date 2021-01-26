@@ -2,7 +2,7 @@
 
 namespace Bfg\Dev\Commands;
 
-use Bfg\Dev\ModelSaver;
+use Bfg\Dev\Support\Eloquent\ModelInjector;
 use Bfg\Entity\Core\Entities\DocumentorEntity;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
@@ -70,7 +70,7 @@ class BfgDumpCommand extends Command
         $class->offAutoUse();
         $class->wrap('php');
         $class->use(Seeder::class);
-        $class->use(ModelSaver::class);
+        $class->use(ModelInjector::class);
         $class->extend("Seeder");
 
         /** @var Model $model */
@@ -96,7 +96,7 @@ class BfgDumpCommand extends Command
 
         foreach (static::$models as $model) {
             $model_name = class_basename(get_class($model));
-            $method->line("ModelSaver::doMany($model_name::class, \$this->".$model->getTable().");");
+            $method->line("ModelInjector::doMany($model_name::class, \$this->".$model->getTable().");");
         }
         $method->line("\DB::statement('SET FOREIGN_KEY_CHECKS=1;');");
 

@@ -2,7 +2,7 @@
 
 namespace {{ namespace }};
 
-use Bfg\Dev\FormRequest;
+use Bfg\Dev\Support\Http\FormRequest;
 
 class {{ class }} extends FormRequest
 {
@@ -26,5 +26,15 @@ class {{ class }} extends FormRequest
         return [
             //
         ];
+    }
+
+    /**
+     * Transform and get a request validated result
+     *
+     * @return array
+     */
+    public function transform()
+    {
+        return parent::transform();
     }
 }
