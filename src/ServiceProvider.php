@@ -6,7 +6,9 @@ use Bfg\Dev\Commands\BfgDumpCommand;
 use Bfg\Dev\Commands\BfgPackageDiscoverCommand;
 use Bfg\Dev\Commands\DumpAutoload;
 use Bfg\Dev\Commands\ComponentMakeCommand;
+use Bfg\Dev\Commands\RepositoryMakeCommand;
 use Bfg\Dev\Commands\RequestMakeCommand;
+use Bfg\Dev\Commands\SpeedTestCommand;
 use Illuminate\Support\ServiceProvider as ServiceProviderIlluminate;
 
 /**
@@ -20,7 +22,9 @@ class ServiceProvider extends ServiceProviderIlluminate
      */
     protected $commands = [
         DumpAutoload::class,
-        BfgDumpCommand::class
+        BfgDumpCommand::class,
+        SpeedTestCommand::class,
+        RepositoryMakeCommand::class
     ];
 
     /**

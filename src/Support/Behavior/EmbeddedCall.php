@@ -2,8 +2,11 @@
 
 namespace Bfg\Dev\Support\Behavior;
 
+use Bfg\Dev\Support\Behavior\EmbeddedAttributes\Action;
+use Bfg\Dev\Support\CoreRepository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Class EmbeddedCall
@@ -56,6 +59,16 @@ class EmbeddedCall
     protected $throw_event;
 
     /**
+     * @var mixed
+     */
+    protected $event_result = [];
+
+    /**
+     * @var JsonResource
+     */
+    protected $resource;
+
+    /**
      * EmbeddedCall constructor.
      * @param  \Closure|array|object|string  $subject
      * @param  array  $arguments
@@ -82,7 +95,7 @@ class EmbeddedCall
         } else if (is_array($subject) && isset($subject[0]) && isset($subject[1])) {
 
             $this->subject = [
-                is_string($subject[0]) ? new $subject[0] : $subject[0],
+                is_string($subject[0]) ? app($subject[0]) : $subject[0],
                 $subject[1]
             ];
 
@@ -100,7 +113,7 @@ class EmbeddedCall
         } else if (is_string($subject)) {
 
             $this->subject = [
-                new $subject,
+                app($subject),
                 '__invoke'
             ];
 
@@ -141,6 +154,71 @@ class EmbeddedCall
         } else {
 
             $this->throw(new \Exception('Wrong mode for reflection'));
+        }
+
+        $this->catchAttributes();
+    }
+
+    protected function catchAttributes () {
+
+        $attributes = $this->ref->getAttributes(Action::class);
+
+        foreach ($attributes as $attribute) {
+            try {
+                $attributeClass = $attribute->newInstance();
+            } catch (\Throwable) {
+                continue;
+            }
+
+            if (!$attributeClass instanceof Action) {
+                continue;
+            }
+
+//            $make_params = [];
+//
+//            foreach ($attributeClass->params as $param) {
+//
+//                $this->arguments[$param] = app($param, $make_params);
+//
+//                if (app('events')->hasListeners($param)) {
+//
+//                    $make_params['resource'] = $this->arguments[$param];
+//
+//                    $this->event_result = resulted_event($this->arguments[$param]);
+//
+//                } else if ($this->arguments[$param] instanceof JsonResource) {
+//
+//                    $this->resource = $this->arguments[$param];
+//
+//                } else if ($this->arguments[$param] instanceof CoreRepository) {
+//
+//                    $make_params['resource'] = $this->arguments[$param];
+//                }
+//            }
+
+            if ($attributeClass->request) {
+
+                $this->arguments[$attributeClass->request] = app($attributeClass->request);
+            }
+
+            if ($attributeClass->event && app('events')->hasListeners($attributeClass->event)) {
+
+                $this->arguments[$attributeClass->request] = app($attributeClass->event);
+
+                $this->event_result = resulted_event($this->arguments[$attributeClass->request]);
+            }
+
+            $make_params = !!$this->event_result ? ['resource' => $this->event_result] : [];
+
+            if ($attributeClass->resource) {
+
+                $this->arguments[$attributeClass->resource] = app($attributeClass->resource, $make_params);
+
+                if ($this->arguments[$attributeClass->resource] instanceof JsonResource) {
+
+                    $this->resource = $this->arguments[$attributeClass->resource];
+                }
+            }
         }
     }
 
@@ -183,13 +261,13 @@ class EmbeddedCall
 
         foreach ($this->parameters as $key => $parameter) {
 
-            if (isset($this->arguments[$key])) {
-
-                $this->send_parameters[] = $this->arguments[$key];
-
-            } else if ($parameter['class'] && isset($this->arguments[$parameter['class']])) {
+            if ($parameter['class'] && isset($this->arguments[$parameter['class']])) {
 
                 $this->send_parameters[] = $this->arguments[$parameter['class']];
+
+            } else if (isset($this->arguments[$key])) {
+
+                $this->send_parameters[] = $this->arguments[$key];
 
             } else if (isset($this->arguments[$parameter['name']])) {
 
@@ -240,12 +318,12 @@ class EmbeddedCall
 
         } else if (class_exists($params['class'])) {
 
-            $testClass = new \ReflectionClass($params['class']);
-
-            if ($testClass->isAbstract()) {
-
-                return null;
-            }
+//            $testClass = new \ReflectionClass($params['class']);
+//
+//            if ($testClass->isAbstract()) {
+//
+//                return null;
+//            }
 
             if (request()->hasFile($params['name'])) {
 
@@ -260,7 +338,9 @@ class EmbeddedCall
                 $r_data = $this->route_params[$params['name']];
             }
 
-            $class = isset($r_data) && is_object($r_data) ? $r_data : app($params['class']);
+            $make_params = !!$this->event_result ? ['resource' => $this->event_result] : [];
+
+            $class = isset($r_data) && is_object($r_data) ? $r_data : app($params['class'], $make_params);
 
             if ($class instanceof EmbeddedCallExtend) {
 
@@ -268,6 +348,16 @@ class EmbeddedCall
             }
 
             $this->parameters[$key]['class'] = $class;
+
+            if ($class instanceof JsonResource) {
+
+                $this->resource = $class;
+            }
+
+            if (app('events')->hasListeners($params['class'])) {
+
+                $this->event_result = resulted_event($class);
+            }
 
             if ($class instanceof Model && isset($r_data) && is_numeric($r_data)) {
 
@@ -345,7 +435,7 @@ class EmbeddedCall
             return $this->throw($throwable);
         }
 
-        return $result;
+        return $result ? $result : ($this->resource ? $this->resource : null);
     }
 
     /**

@@ -1,0 +1,22 @@
+<?php
+
+namespace {{ namespace }};
+
+use Bfg\Dev\Support\CoreRepository;
+
+/**
+ * Class {{ class }}
+ * @package {{ namespace }}
+ */
+class {{ class }} extends CoreRepository{{ implement }}
+{
+    /**
+     * Model class namespace getter
+     *
+     * @return string
+     */
+    protected function getModelClass(): string
+    {
+        {{ r_model }}
+    }{{ methods }}
+}

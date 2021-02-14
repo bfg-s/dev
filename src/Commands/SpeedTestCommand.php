@@ -53,6 +53,25 @@ class SpeedTestCommand extends Command
      */
     public function handle()
     {
+        if ($c = $this->argument('test')) {
+
+            if (class_exists($c)) {
+
+                $c = app($c);
+
+                if ($c instanceof SpeedTestInterface) {
+
+                    static::$tests = [$c];
+
+                } else {
+
+                    $this->error("Handled SpeedTestInterface only!");
+
+                    return 1;
+                }
+            }
+        }
+
         if (!count(static::$tests)) {
 
             $this->error('Nothing to test!');

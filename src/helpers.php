@@ -36,6 +36,27 @@ if (! function_exists("is_embedded_call") ) {
     }
 }
 
+if (! function_exists("resulted_event") ) {
+
+    /**
+     * Dispatch an event with save a last true result of listener.
+     * @param  object  $event
+     * @return object
+     */
+    function resulted_event (object $event) {
+
+        $event->result = event($event);
+
+        if (count($event->result)) {
+            $event->result = array_filter($event->result, fn ($i) => !!$i);
+            $event->result = $event->result[array_key_last($event->result)];
+            $event->result = is_object($event->result) ? $event->result : (object)\Arr::wrap($event->result);
+        }
+
+        return $event->result;
+    }
+}
+
 if (!function_exists('pipeline')) {
 
     /**
@@ -190,7 +211,7 @@ if (! function_exists("embedded_call") ) {
      * @param  null  $throw_event
      * @return mixed
      */
-    function embedded_call (callable $subject, array $arguments = [], $throw_event = null) {
+    function embedded_call (callable|array $subject, array $arguments = [], $throw_event = null) {
 
         return (new \Bfg\Dev\Support\Behavior\EmbeddedCall($subject, $arguments, $throw_event))->call();
     }
